@@ -11,6 +11,7 @@ def transform_hourly_data(weather_res, air_res) -> pd.DataFrame:
     hourly_apparent_temperature = hourly_weather.Variables(2).ValuesAsNumpy()
     hourly_rain = hourly_weather.Variables(3).ValuesAsNumpy()
     hourly_weather_code = hourly_weather.Variables(4).ValuesAsNumpy()
+
     # Air Quality
     hourly_pm10 = hourly_air.Variables(0).ValuesAsNumpy()
     hourly_pm2_5 = hourly_air.Variables(1).ValuesAsNumpy()
@@ -41,6 +42,7 @@ def transform_hourly_data(weather_res, air_res) -> pd.DataFrame:
     hourly_data["uv_index_clear_sky"] = hourly_uv_index_clear_sky
 
     df = pd.DataFrame(data=hourly_data)
+    df = df.dropna(subset=["temperature_2m", "pm10"], how="all")
 
     return df
 
@@ -65,5 +67,6 @@ def transform_daily_data(weather_res) -> pd.DataFrame:
     daily_data["temperature_2m_min"] = daily_temperature_2m_min
 
     df = pd.DataFrame(data=daily_data)
+    df = df.dropna(subset=["temperature_2m_mean"], how="all")
 
     return df
