@@ -25,3 +25,20 @@ reporting.
   - `dotenv`: To handle environment variables (DB credentials)
 
 ## ETL Pipeline Breakdown
+
+### Data Extraction
+
+We collect the weather data and air quality with specified parameters via the Open-Meteo
+API. This step does not require an API key.
+
+> [!NOTE] We can specify the coordinates for the data, but we chose to use the `geopy`
+> package to get this information using only the city name.
+
+### Data Transformation
+
+In this step we only take care of missing values, since the source of our data has taken
+care of most of the problems.
+
+### Data Loading
+
+Once we have transform the data, we store it into a PostgreSQL database.
