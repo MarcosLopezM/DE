@@ -18,7 +18,6 @@ class WeatherParams(BaseModel):
     end_date: dt.date
     daily: list[str]
     hourly: list[str]
-    timezone: str = "auto"
 
 
 def get_coordinates(city_name: str) -> Location:
