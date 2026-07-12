@@ -39,10 +39,3 @@ def transform_weather_data(raw_data: dict) -> tuple[pl.DataFrame, pl.DataFrame]:
         daily_df = daily_df.with_columns(time=pl.col("time").str.to_date())
 
     return hourly_df, daily_df
-
-
-raw_data = get_data("Mexico City", dt.date(2026, 7, 1), dt.date(2026, 7, 5))
-h_df, d_df = transform_weather_data(raw_data)
-print(h_df.head())
-print("*" * 50)
-print(d_df.head())
