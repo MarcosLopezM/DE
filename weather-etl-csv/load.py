@@ -34,10 +34,3 @@ def load_db(hourly_df: pl.DataFrame, daily_df: pl.DataFrame):
             engine="adbc",
         )
         print(f"Succesfully loaded {daily_df.height} rows into daily_weather!")
-
-
-# raw_data = get_data("Mexico City", dt.date(2026, 7, 1), dt.date(2026, 7, 5))
-# h_df, d_df = transform_weather_data(raw_data)
-# print(h_df.head())
-# print("*" * 50)
-# print(d_df.head())
