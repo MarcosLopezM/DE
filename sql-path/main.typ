@@ -113,11 +113,11 @@ WHERE condition(s);
 ```
 
 #box(
-  "
-  Since the ``DISTINCT`` keyword will blindly remove duplicate rows, we will learn in a
-  future lesson how to discard duplicates based on specific columns using grouping and
-  the ``GROUP BY`` clause.
-  ",
+  [
+    Since the ``DISTINCT`` keyword will blindly remove duplicate rows, we will learn in a
+    future lesson how to discard duplicates based on specific columns using grouping and
+    the ``GROUP BY`` clause.
+  ],
   theme: "info",
 )
 
@@ -186,3 +186,256 @@ The *INNER JOIN* is a process that matches rows from the first table and the sec
 table which have the same key (as defined by the ``ON`` constraint) to create a result
 row with the combined columns from both tables. After the tables are joined, the other
 clauses we learned previously are then applied.
+
+== OUTER JOINs
+
+Sometimes *INNER JOIN* might not be sufficient because the resulting table only contains
+data that belongs in both of the tables.
+
+If the two tables have asymmetric data, then we would have to use *LEFT JOIN, RIGHT
+JOIN* or *FULL JOIN* instead to ensure that the data you need is not left out of the
+results.
+
+```sql
+SELECT column, another_column, …
+FROM mytable
+INNER/LEFT/RIGHT/FULL JOIN another_table
+    ON mytable.id = another_table.matching_id
+WHERE condition(s)
+ORDER BY column, … ASC/DESC
+LIMIT num_limit OFFSET num_offset;
+```
+
+Like the *INNER JOIN* these three new joins have to specify which column to join the
+data on.
+When joining table A to table B, a *LEFT JOIN* simply includes rows from A regardless
+whether a matching row is found in B. The *RIGHT JOIN* is the same, but reversed,
+keeping rows in B regardless of whether a match is found in A. Finally, a *FULL JOIN*
+simply means that rows from both tables are kept, regardless of whether a matching row
+exists in the other table.
+
+#box(
+  [
+    We might see queries with these joins written a *LEFT OUTER JOIN*, *RIGHT OUTER JOIN*,
+    or *FULL OUTER JOIN*, but the *OUTER* keyword is really kept for SQL-92 compatibility.
+  ],
+  theme: "highlight",
+)
+
+== A short note on NULLs
+
+It's always good to reduce the possibility of *NULL* values in databases because they
+require special attention when constructing queries, constraints (certain functions
+behave differently with  null values) and when processing the results.
+
+An alternative to *NULL* values in your database is to have *data-type appropriate
+default values*, like 0 for numerical data, empty strings for text data, etc. But if
+your database needs to store incomplete data, then *NULL* values can be appropriate if
+the default values will skew later analysis.
+
+Sometimes, it's also not possible to avoid *NULL* values. In these cases, you can test a
+column for *NULL* values in a *WHERE* clause by using *IS NULL* or *IS NOT NULL*
+constraint.
+
+```sql
+SELECT column, another_column, …
+FROM mytable
+WHERE column IS/IS NOT NULL
+AND/OR another_condition
+AND/OR …;
+```
+
+== Queries with expressions
+
+In addition to querying and referencing raw column data with SQL, you can also use
+_expressions_ to write more complex logic on column values in a query. These expressions
+can use mathematical and string functions along with basic arithmetic to transform
+values when querying is executed, as shown in this physics example.
+
+```sql
+SELECT particle_speed / 2.0 AS half_particle_speed
+FROM physics_data
+WHERE ABS(particle_position) * 10.0 > 500;
+```
+
+#box(
+  [
+    Each database has its own supported set of mathematical, string, and date functions
+    that can be use in a query.
+  ],
+  theme: "important",
+)
+
+The use of expressions can save time and extra post-processing of the result data, but
+can also make the query harder to read, so we recommend that when expressions are used
+in the *SELECT* part of the query, you assign a descriptive _alias_ using the *AS* keyword.
+
+#c(
+  "
+    SELECT col_expression AS expr_description, …
+    FROM mytable;
+  ",
+  lang: "sql",
+)
+
+In addition to expressions, regular columns and even tables can also have aliases to
+make them easier to reference in the output and as a part of simplifying more complex queries.
+
+#c(
+  "
+    SELECT column AS better_column_name, …
+    FROM a_long_widgets_table_name AS mywidgets
+    INNER JOIN widget_sales
+      ON mywidgets.id = widget_sales.widget_id;
+  ",
+  lang: "sql",
+)
+
+== Queries with aggregates
+
+SQL also supports the use of aggregate expressions (or functions) that allow you to
+summarize information about a group of rows of data.
+
+```sql
+SELECT AGG_FUNC(column_or_expression) AS aggregate_description, ...
+FROM mytable
+WHERE constraint_expression;
+```
+
+Without a specified grouping, each aggregate function is going to run on the whole set
+of result rows and return a single value. And like normal expressions, giving your
+aggregate functions an alias ensures that the results will be easier to read and process.
+
+=== Common aggregate functions
+
+
+#table(
+  columns: (auto, auto),
+  align: horizon,
+  table.header([*Function*], [Description]),
+  [#c("COUNT(*)", lang: "sql") \ #c("COUNT(column)", lang: "sql")],
+  [A common function
+    use to count the number of rows in the group if no column name is specified.
+    Otherwise, count the number of rows in the group with non-NULL values in the specified
+    column.],
+
+  [#c("MIN(column)", lang: "sql")],
+  [Finds the smallest numerical value in the specified
+    column for all rows in the group.],
+
+  [#c("MAX(column)", lang: "sql")],
+  [Finds the largest numerical value in the specified
+    column for all rows in the group.],
+
+  [#c("AVG(column)", lang: "sql")],
+  [Finds the average numerical value in the specified
+    column for all rows in the group.],
+
+  [#c("SUM(column)", lang: "sql")],
+  [Finds the sum of all numerical values in the specified
+    column for the rows in the group.],
+)
+
+=== Grouped aggregate functions
+
+Instead of the default behavior of aggregate functions, you can instead apply them to
+individual groups of data within that group.
+This would then create as many results as there are unique groups defined as by the
+*GROUP BY* clause.
+
+```sql
+SELECT AGG_FUNC(column_or_expression) AS aggregate_description, …
+FROM mytable
+WHERE constraint_expression
+GROUP BY column;
+```
+
+#note([The #c("GROUP BY", lang: "sql") clause works by grouping rows that have the same
+  value in the column specified.])
+
+=== *HAVING* clause
+
+The *HAVING* clause is used specifically with the *GROUP BY* clause to allow us to
+filter grouped rows from the result set.
+
+```sql
+SELECT group_by_column, AGG_FUNC(column_expression) AS aggregate_result_alias, …
+FROM mytable
+WHERE condition
+GROUP BY column
+HAVING group_condition;
+```
+
+The clause constraints are written the same way as the *WHERE* clause constraints, and
+are applied to the grouped rows.
+
+== Order of execution of a query
+
+Each query begins with finding the data that we need in a database, and then filtering
+that data down into something that can be processed and understood as quickly as
+possible. Because each part of the query is executed sequentially, it's important to
+understand the order of execution so that you know what result are accessible where.
+
+```sql
+SELECT DISTINCT column, AGG_FUNC(column_or_expression), …
+FROM mytable
+    JOIN another_table
+      ON mytable.column = another_table.column
+    WHERE constraint_expression
+    GROUP BY column
+    HAVING constraint_expression
+    ORDER BY column ASC/DESC
+    LIMIT count OFFSET COUNT;
+```
+
+=== Query order of execution
+
+1. *FROM* and *JOIN* s
+
+The *FROM* clause and subsequent *JOIN* s are first executed to determine the total
+working set of data that is being queried. This includes subqueries in this clause and
+can cause temporary tables to be created under the hood containing all the columns and
+rows of the tables being joined.
+
+2. *WHERE*
+
+Once we have the total working data, the first-pass *WHERE* constraints are applied to
+the individual rows and rows that do not satisfy the constraint are discarded. Each of
+the constraints can only access columns directly from the tables requested in the *FROM*
+clause. Aliases in the *SELECT* part of the query are not accessible in most databases
+since they may include expressions dependent on parts of the query that haven not yet
+executed.
+
+3. *GROUP BY*
+
+The remaining rows after the *WHERE* constraints are applied and then grouped based on
+common values in the column specified in the *GROUP BY* clause. As a result of the
+grouping, there will only be as many rows as there are unique values in that column.
+Implicitly, this means that you should only need to use this when you have aggregate
+function in your query.
+
+4. *HAVING*
+
+If the query ha a *GROUP BY* clause, then the constraints in the *HAVING* clause are
+then applied to the grouped rows, discard the grouped rows that don't satisfy this
+constraint. Like the *WHERE* clause, aliases are not accessible from this step in most databases.
+
+5. *SELECT*
+
+Any expressions in the *SELECT* part of the query are finally computed.
+
+6. *DISTINCT*
+
+Of the remaining rows with duplicate values in the column marked as *DISTINCT* will be
+discarded.
+
+7. *ORDER BY*
+
+If an order is specified by the *ORDER BY* clause, the rows are then sorted by the
+specified data in either ascending or descending order. Since all the expressions in the
+*SELECT* part of the query have been computed, you can reference aliases in this clause.
+
+8. *LIMIT*\/*OFFSET*
+
+Finally, the rows that fall outside the range specified by the *LIMIT* and *OFFSET* are
+discarded, leaving the final set of rows to be returned from the query.
