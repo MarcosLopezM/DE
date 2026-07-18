@@ -523,6 +523,155 @@ WHERE condition;
 )
 
 == Handling tables
+
 === Creating tables
+
+When you have new entities and relationships to store in your database you can create a
+new database table using the *CREATE TABLE* statement.
+
+```sql
+CREATE TABLE IF NOT EXISTS mytable (
+    column DataType TableConstraint DEFAULT default_value,
+    another_column DataType TableConstraint DEFAULT default_value,
+    ...
+);
+```
+
+The structure of the new table is defined by its _table schema_, which defines a series
+of columns. Each column has a name, the type of data allowed in that column, an
+_optional_ table constraint on values being inserted and an optional default value.
+
+If there already exists a table with the same name, the SQL implementation will usually
+throw an error, so to suppress the error and skip creating a table if one exists, you
+can use the *IF NOT EXISTS* clause.
+
+==== Table data types
+
+#table(
+  columns: (auto, auto),
+  align: horizon,
+  table.header([*Data type*], [Description]),
+  [#c("INTEGER, BOOLEAN", lang: "sql")],
+  [The integer datatypes can store whole integer
+    values like the count of a number or an age. In some implementations, the boolean
+    value is just represented as an integer value of just 0 or 1.],
+
+  [#c("FLOAT, DOUBLE, REAL", lang: "sql")],
+  [  The floating point datatypes can store more precise numerical data like measurements or fractional values. Different types can be used depending on the floating point precision required for that value.],
+
+  [#c("CHARACTER(num_chars)", lang: "sql") \ #c("VARCHAR(num_chars)", lang: "sql") \
+    #c("TEXT", lang: "sql")],
+  [The text based datatypes can store strings and text in all sorts of locales. The distinction between the various types generally amount to underlaying efficiency of the database when working with these columns.
+
+    Both the CHARACTER and VARCHAR (variable character) types are specified with the max number of characters that they can store (longer values may be truncated), so can be more efficient to store and query with big tables.],
+
+  [#c("DATE, DATETIME", lang: "sql")],
+  [SQL can also store date and time stamps to keep track of time series and event data. They can be tricky to work with especially when manipulating data across timezones.],
+
+  [#c("BLOB", lang: "sql")],
+  [  Finally, SQL can store binary data in blobs right in the database. These values are often opaque to the database, so you usually have to store them with the right metadata to requery them.],
+)
+
+==== Table constraints
+
+
+#table(
+  columns: (auto, auto),
+  align: horizon,
+  table.header([*Data type*], [Description]),
+  [#c("PRIMARY KEY", lang: "sql")],
+  [This means that the values in this column are unique and each value can be used to
+    identify a single row in this table.],
+
+  [#c("AUTOINCREMENT", lang: "sql")],
+  [ For integer values, this means that the value is automatically filled in and
+    incremented with each row insertion. Not supported in all databases.],
+
+  [#c("UNIQUE", lang: "sql")],
+  [This means that the values in this column have to e unique, so you can't insert
+    another row with the same value in this column as another row in the table. Differs
+    from the ``PRIMARY KEY`` in that it doesn't have to be a key for a row in the table.],
+
+  [#c("NOT NULL", lang: "sql")], [This means that the inserted value can not be ``NULL``],
+
+  [#c("CHECK(expression)", lang: "sql")],
+  [This allows you to run a more complex expression to test whether the values inserted
+    are valid.],
+
+  [#c("FOREIGN KEY", lang: "sql")],
+  [This is a consistency check which ensures that each value in this column corresponds
+    to another value in a column in another table.],
+)
+
+==== An example
+
+```sql
+CREATE TABLE movies (
+    id INTEGER PRIMARY KEY,
+    title TEXT,
+    director TEXT,
+    year INTEGER,
+    length_minutes INTEGER
+);
+```
+
 === Altering tables
+
+As your data changes over time, SQL provides a way for you to update your corresponding
+tables and database schemas by using the *ALTER TABLE* statement to add, remove, or
+modify columns and table constraints.
+
+==== Adding columns
+
+The syntax for adding a new column is similar to the syntax when creating new rows in
+the *CREATE TABLE* statement. You need to specify the data type of the column along with
+any potential table constraints and default values to be applied to both existing and
+new rows.
+
+#box(
+  [
+    In some databases like MYSQL, you can even specify where to insert the new column
+    using *FIRST* or *AFTER* clauses, though this is not a standard feature.
+  ],
+  theme: "info",
+)
+
+```sql
+ALTER TABLE mytable
+ADD column DataType OptionalTableConstraint
+    DEFAULT default_value;
+```
+
+==== Removing columns
+
+Dropping columns is as easy as specifying the column to drop, however, some databases
+don't support this feature. Instead you may have to create a new table and migrate the
+data over.
+
+```erbsql
+ALTER TABLE mytable
+DROP column_to_be_deleted;
+```
+
+==== Renaming the table
+
+If you need to rename the table itself, you can also do that using the *RENAME TO*
+clause statement.
+
+```sql
+ALTER TABLE mytable
+RENAME TO new_table_name;
+```
+
 === Dropping tables
+
+In some rare cases, you may want to remove an entire table including all of its data and
+metadata, and to do so, you can use the *DROP TABLE* statement, which differs from the
+*DELETE* statement in that it also remove the table schema from the database entirely.
+
+```sql
+DROP TABLE IF EXISTS mytable;
+```
+
+Like the *CREATE TABLE* statement, the database may throw an error if the specified table
+does not exist, and to suppress that error, you can use the *IF EXISTS* clause.
