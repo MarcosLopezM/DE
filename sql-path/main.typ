@@ -675,3 +675,28 @@ DROP TABLE IF EXISTS mytable;
 
 Like the *CREATE TABLE* statement, the database may throw an error if the specified table
 does not exist, and to suppress that error, you can use the *IF EXISTS* clause.
+
+= Datacamp's SQL Fundamentals2
+
+== Data manipulation
+
+=== Differentiating Techniques
+
+#table(
+  columns: (auto, auto, auto, auto),
+  align: horizon,
+  table.header([*Joins*], [*Correlated Subqueries*], [*Multiple\/Nested Subqueries*], [*Common Table Expressions*]),
+  [
+    Combine two or more table, but only allows simple operations\/aggregations.
+  ],
+  [
+    Match subqueries and tables and avoid the limits imposed by joins, but can take a long
+    time to process.
+  ],
+  [
+    Multi-step transformations that improve accuracy and reproducibility.
+  ],
+  [
+    Organize subqueries sequentially which allows to reference other CTEs.
+  ],
+)
