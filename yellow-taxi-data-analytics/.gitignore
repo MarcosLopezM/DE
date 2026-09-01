@@ -1,3 +1,6 @@
+# Data file to avoid big files in GitHub
+*/data/*
+
 ### JupyterNotebooks ###
 # website: http://jupyter.org/
 
